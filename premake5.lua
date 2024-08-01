@@ -7,8 +7,7 @@ workspace "Arcane"
     outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
     IncludeDir = {
-        Arcane = "Arcane/src",
-        tomlpp = "Vendor/toml++/include/"
+        Arcane = "Arcane/src"
     }
 
     language "C++"
@@ -47,8 +46,7 @@ workspace "Arcane"
         }
 
         includedirs {
-            "%{IncludeDir.Arcane}",
-            "%{IncludeDir.tomlpp}",
+            "%{IncludeDir.Arcane}"
         }
 
         defines { "_CRT_SECURE_NO_WARNINGS" }
