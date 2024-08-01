@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logging">
+      <UniqueIdentifier>{C4E22202-B045-B2A6-59CB-EA5C450D7E29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{23A78D7C-0FDE-8E0D-B8CA-7410A4E00A0F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util\Profile">
+      <UniqueIdentifier>{5057c75c-ed47-4182-8b67-9a4c47f0a0b1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Arcane.h" />
+    <ClInclude Include="src\Common.h" />
+    <ClInclude Include="src\Core\Application.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Logging\Format.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Logging\ILogger.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Logging\Level.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Logging\Logger.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Logging\LoggerManager.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Logging\Logging.h">
+      <Filter>Core\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Window.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\Singleton.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\StringUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\UUID.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\Profile\Instrumentation.h">
+      <Filter>Util\Profile</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\Profile\Instrumentor.h">
+      <Filter>Util\Profile</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\Profile\Profiler.h">
+      <Filter>Util\Profile</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Core\Application.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Logging\Format.cpp">
+      <Filter>Core\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Logging\ILogger.cpp">
+      <Filter>Core\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Logging\Logger.cpp">
+      <Filter>Core\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Logging\LoggerManager.cpp">
+      <Filter>Core\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Window.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util\Singleton.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util\StringUtil.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util\UUID.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util\Profile\Instrumentation.cpp">
+      <Filter>Util\Profile</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util\Profile\Profiler.cpp">
+      <Filter>Util\Profile</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
