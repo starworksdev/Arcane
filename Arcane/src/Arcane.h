@@ -8,4 +8,3 @@
 
 #include "Common.h"
 #include "Core/Application.h"
-#include "Core/Logging/Logging.h"

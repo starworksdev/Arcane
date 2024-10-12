@@ -16,3 +16,4 @@ bin-int/
 *.vcxproj.filters
 *.dmp
 *.log
+*.filters
