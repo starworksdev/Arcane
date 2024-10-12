@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "Window.h"
 
@@ -12,14 +13,20 @@ namespace Arcane
       static constexpr uint32_t TARGET_UPDATES_PER_SECOND = 60U;
       static constexpr uint32_t MAX_ACCUMULATED_UPDATES = 5U;
 
+      static std::unique_ptr<Application> Create(HINSTANCE hInstance, int nCmdShow);
+
       Application(HINSTANCE hInstance, int nCmdShow);
       ~Application();
+      Application(const Application&) = delete;
+      Application& operator=(const Application&) = delete;
+      Application(Application&&) noexcept;
+      Application& operator=(Application&&) noexcept;
 
       void Run();
 
-      void SetUpdateCallback(std::function<void(float)> callback)       { m_updateCallback = callback; }
-      void SetFixedUpdateCallback(std::function<void(float)> callback)  { m_fixedUpdateCallback = callback; }
-      void SetRenderCallback(std::function<void()> callback)            { m_renderCallback = callback; }
+      void RegisterUpdateCallback(std::function<void(float)> callback)       { m_updateCallback = callback; }
+      void RegisterFixedUpdateCallback(std::function<void(float)> callback)  { m_fixedUpdateCallback = callback; }
+      void RegisterRenderCallback(std::function<void()> callback)            { m_renderCallback = callback; }
 
    private:
       bool Initialize(HINSTANCE hInstance, int nCmdShow);
@@ -30,7 +37,7 @@ namespace Arcane
 
       void Cleanup();
 
-      Window* m_window;
+      std::unique_ptr<Window> m_window;
 
       uint32_t m_framesPerSecond;
       uint32_t m_updatesPerSecond;

@@ -7,6 +7,24 @@
 
 #include "Common.h"
 #include "Logging/Logging.h"
+#include "Scene/SceneManager.h"
+
+#ifdef ARC_BUILD_DEBUG
+   #include "Util/DumpGenerator.h"
+#endif
+
+std::unique_ptr<Arcane::Application> Arcane::Application::Create(HINSTANCE hInstance, int nCmdShow)
+{
+   auto app = std::make_unique<Application>(hInstance, nCmdShow);
+   if (!app)
+   {
+#ifdef ARC_BUILD_DEBUG
+      ARC_DEBUGBREAK();
+#endif;
+      exit(EXIT_FAILURE);
+   }
+   return app;
+}
 
 Arcane::Application::Application(HINSTANCE hInstance, int nCmdShow) :
    m_updatesPerSecond(0U),
@@ -15,7 +33,7 @@ Arcane::Application::Application(HINSTANCE hInstance, int nCmdShow) :
 {
    if (!Initialize(hInstance, nCmdShow))
    {
-      if (&LoggerManager::GetCoreLogger())
+      if (&LoggingManager::GetCoreLogger())
          ARC_CORE_ERROR("Application initialization failed");
       MessageBox(NULL, L"Application initialization failed", L"Error", MB_OK);
       exit(EXIT_FAILURE);
@@ -24,8 +42,42 @@ Arcane::Application::Application(HINSTANCE hInstance, int nCmdShow) :
 
 Arcane::Application::~Application()
 {
-   delete m_window;
    Cleanup();
+}
+
+Arcane::Application::Application(Application&& other) noexcept :
+   m_window(std::move(other.m_window)),
+   m_framesPerSecond(other.m_framesPerSecond),
+   m_updatesPerSecond(other.m_updatesPerSecond),
+   m_fixedUpdatesPerSecond(other.m_fixedUpdatesPerSecond),
+   m_updateCallback(std::move(other.m_updateCallback)),
+   m_fixedUpdateCallback(std::move(other.m_fixedUpdateCallback)),
+   m_renderCallback(std::move(other.m_renderCallback))
+{
+   other.m_framesPerSecond = 0;
+   other.m_updatesPerSecond = 0;
+   other.m_fixedUpdatesPerSecond = 0;
+}
+
+Arcane::Application& Arcane::Application::operator=(Application&& other) noexcept
+{
+   if (this != &other)
+   {
+      m_window.reset();
+
+      m_window = std::move(other.m_window);
+      m_framesPerSecond = other.m_framesPerSecond;
+      m_updatesPerSecond = other.m_updatesPerSecond;
+      m_fixedUpdatesPerSecond = other.m_fixedUpdatesPerSecond;
+      m_updateCallback = std::move(other.m_updateCallback);
+      m_fixedUpdateCallback = std::move(other.m_fixedUpdateCallback);
+      m_renderCallback = std::move(other.m_renderCallback);
+
+      other.m_framesPerSecond = 0;
+      other.m_updatesPerSecond = 0;
+      other.m_fixedUpdatesPerSecond = 0;
+   }
+   return *this;
 }
 
 void Arcane::Application::Run()
@@ -98,21 +150,23 @@ void Arcane::Application::Run()
 
 bool Arcane::Application::Initialize(HINSTANCE hInstance, int nCmdShow)
 {
-   auto& logging = LoggerManager::GetInstance();
-   if (!logging.Initialize())
-      return false;
-   logging.SetCoreLogger(new Logger(LoggerManager::DEFAULT_CORE_LOGGER_NAME));
+#ifdef ARC_BUILD_DEBUG
+   RegisterDumpHandler();
+#endif
+
+   auto& logging = LoggingManager::GetInstance();
+   logging.SetCoreLogger(new Logger(LoggingManager::DEFAULT_CORE_LOGGER_NAME));
    if (!&logging.GetCoreLogger())
       return false;
-   logging.SetApplicationLogger(new Logger(LoggerManager::DEFAULT_APPLICATION_LOGGER_NAME));
+   logging.SetApplicationLogger(new Logger(LoggingManager::DEFAULT_APPLICATION_LOGGER_NAME));
    if (!&logging.GetApplicationLogger())
       return false;
-   m_window = new Window(hInstance, nCmdShow);
+   m_window = std::make_unique<Window>(hInstance, nCmdShow);
    if (!m_window)
       return false;
-   m_window->SetCloseCallback([this]() {
-      return true; // Allow the window to close
-   });
+   m_window->SetCloseCallback([]() { return true; /* Allow the window to close */ });
+
+   SceneManager::Initialize();
 
    ARC_CORE_INFO("Application initialized");
    return true;
@@ -120,25 +174,32 @@ bool Arcane::Application::Initialize(HINSTANCE hInstance, int nCmdShow)
 
 void Arcane::Application::Update(float deltaTime)
 {
+   if (auto currentScene = SceneManager::GetCurrentScene())
+      currentScene->Update(deltaTime);
+
    if (m_updateCallback)
       m_updateCallback(deltaTime);
 }
 
 void Arcane::Application::FixedUpdate(float timeStep)
 {
+   if (auto currentScene = SceneManager::GetCurrentScene())
+      currentScene->FixedUpdate(timeStep);
+
    if (m_fixedUpdateCallback)
       m_fixedUpdateCallback(timeStep);
 }
 
 void Arcane::Application::Render()
 {
+   if (auto currentScene = SceneManager::GetCurrentScene())
+      currentScene->Render();
+
    if (m_renderCallback)
       m_renderCallback();
 }
 
 void Arcane::Application::Cleanup()
 {
-   LoggerManager::Shutdown();
-
-   PostQuitMessage(0);// Ensure the message loop exits
+   PostQuitMessage(0);
 }
