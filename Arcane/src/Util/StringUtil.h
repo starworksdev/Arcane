@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <string>
 #include <vector>
 
@@ -36,7 +37,63 @@ namespace Arcane
       std::string Replace(const std::string& str, const std::string& find, const std::string& replace);
       std::wstring Replace(const std::wstring& str, const std::wstring& find, const std::wstring& replace);
 
-      std::string ToString(const std::wstring& str);
-      std::wstring ToWString(const std::string& str);
+      template <typename T>
+      std::string ToString(T value)
+      {
+         if constexpr (std::is_same_v<T, std::wstring>)
+         {
+            int32_t size = WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, NULL, 0, NULL, NULL);
+            std::string result(size, 0);
+            WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, result.data(), size, NULL, NULL);
+            return result;
+         }
+         else if constexpr (std::is_floating_point_v<T>)
+         {
+            return std::format("{:.{}g}", value, std::numeric_limits<T>::max_digits10);
+         }
+         else if constexpr (std::is_same_v<T, const char*>)
+         {
+            return std::string(value);
+         }
+         else if constexpr (std::is_same_v<T, std::string>)
+         {
+            return value;
+         }
+         else
+         {
+            return std::format("{}", value);
+         }
+      }
+
+      template <typename T>
+      std::wstring ToWString(T value)
+      {
+         if constexpr (std::is_same_v<T, std::string>)
+         {
+            int32_t size = MultiByteToWideChar(CP_UTF8, 0, value.c_str(), -1, NULL, 0);
+            std::wstring result(size, 0);
+            MultiByteToWideChar(CP_UTF8, 0, value.c_str(), -1, result.data(), size);
+            return result;
+         }
+         else if constexpr (std::is_floating_point_v<T>)
+         {
+            return std::format(L"{:.{}g}", value, std::numeric_limits<T>::max_digits10);
+         }
+         else if constexpr (std::is_same_v<T, const char*>)
+         {
+            int32_t size = MultiByteToWideChar(CP_UTF8, 0, value, -1, NULL, 0);
+            std::wstring result(size, 0);
+            MultiByteToWideChar(CP_UTF8, 0, value, -1, result.data(), size);
+            return result;
+         }
+         else if constexpr (std::is_same_v<T, std::wstring>)
+         {
+            return value;
+         }
+         else
+         {
+            return std::format(L"{}", value);
+         }
+      }
    } // namespace StringUtil
 } // namespace Arcane

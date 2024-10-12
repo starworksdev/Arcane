@@ -6,7 +6,9 @@
 #include <locale>
 #include <string>
 #include <vector>
-
+#include <sstream>
+#include <iomanip>
+#include <limits>
 #include "Common.h"
 
 std::string Arcane::StringUtil::ToLower(const std::string& str)
@@ -143,22 +145,22 @@ std::wstring Arcane::StringUtil::Replace(const std::wstring& str, const std::wst
    return result;
 }
 
-std::string Arcane::StringUtil::ToString(const std::wstring& str)
-{
-   int32_t size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
-   char* buffer = new char[size];
-   WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, buffer, size, NULL, NULL);
-   std::string result(buffer);
-   delete[] buffer;
-   return result;
-}
+template std::string Arcane::StringUtil::ToString<int>(int value);
+template std::string Arcane::StringUtil::ToString<unsigned int>(unsigned int value);
+template std::string Arcane::StringUtil::ToString<long>(long value);
+template std::string Arcane::StringUtil::ToString<unsigned long>(unsigned long value);
+template std::string Arcane::StringUtil::ToString<long long>(long long value);
+template std::string Arcane::StringUtil::ToString<unsigned long long>(unsigned long long value);
+template std::string Arcane::StringUtil::ToString<float>(float value);
+template std::string Arcane::StringUtil::ToString<double>(double value);
+template std::string Arcane::StringUtil::ToString<long double>(long double value);
 
-std::wstring Arcane::StringUtil::ToWString(const std::string& str)
-{
-   int32_t size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
-   wchar_t* buffer = new wchar_t[size];
-   MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, buffer, size);
-   std::wstring result(buffer);
-   delete[] buffer;
-   return result;
-}
+template std::wstring Arcane::StringUtil::ToWString<int>(int value);
+template std::wstring Arcane::StringUtil::ToWString<unsigned int>(unsigned int value);
+template std::wstring Arcane::StringUtil::ToWString<long>(long value);
+template std::wstring Arcane::StringUtil::ToWString<unsigned long>(unsigned long value);
+template std::wstring Arcane::StringUtil::ToWString<long long>(long long value);
+template std::wstring Arcane::StringUtil::ToWString<unsigned long long>(unsigned long long value);
+template std::wstring Arcane::StringUtil::ToWString<float>(float value);
+template std::wstring Arcane::StringUtil::ToWString<double>(double value);
+template std::wstring Arcane::StringUtil::ToWString<long double>(long double value);
