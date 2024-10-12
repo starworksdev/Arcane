@@ -7,28 +7,29 @@ workspace "Arcane"
     outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
     IncludeDir = {
-        Arcane = "Arcane/src"
+        Arcane          = "Arcane/src",
+        entt            = "Vendor/entt/include",
+        glm             = "Vendor/glm/include",
+        nlogmannjson    = "Vendor/nlogmannjson/include",
+        jemalloc        = "Vendor/jemalloc/include"
     }
 
     language "C++"
-    cppdialect "C++20"
+    cppdialect "C++latest"
     staticruntime "on"
+
+    toolset "v143"
 
     filter "system:windows"
         systemversion "latest"
 
     filter "configurations:Debug"
-        defines {
-            "ARC_BUILD_DEBUG",
-            "ARC_PROFILE"
-        }
+        defines { "ARC_BUILD_DEBUG", "ARC_PROFILE" }
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
-        defines {
-            "ARC_BUILD_RELEASE"
-        }
+        defines { "ARC_BUILD_RELEASE" }
         runtime "Release"
         optimize "speed"
 
@@ -46,7 +47,11 @@ workspace "Arcane"
         }
 
         includedirs {
-            "%{IncludeDir.Arcane}"
+            "%{IncludeDir.Arcane}",
+            "%{IncludeDir.entt}",
+            "%{IncludeDir.glm}",
+            "%{IncludeDir.nlogmannjson}",
+            "%{IncludeDir.jemalloc}"
         }
 
         defines { "_CRT_SECURE_NO_WARNINGS" }
@@ -55,6 +60,8 @@ workspace "Arcane"
 -- Projects
     project "Arcane"
         setupProject("Arcane", "StaticLib")
+        links { "d3d12" }
+
         postbuildcommands { ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/ArcaneTest") }
 
     project "ArcaneTest"

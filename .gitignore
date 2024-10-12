@@ -1,12 +1,9 @@
-# Binary directories
 bin/
 bin-int/
 
-# VS Code directories
 .vscode/
-
-# Visual Studio directories
 .vs/
+
 *.code-workspace
 *.suo
 *.user
@@ -16,3 +13,6 @@ bin-int/
 *.VC.db
 *.VC.VC.opendb
 *.vcxproj
+*.vcxproj.filters
+*.dmp
+*.log
