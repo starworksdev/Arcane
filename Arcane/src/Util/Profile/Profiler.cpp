@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <thread>
 
-#include "Core/Logging/Logging.h"
+#include "Logging/Logging.h"
 
 void Arcane::Profiler::BeginSession(const std::string& name, const std::string& filepath)
 {
@@ -13,7 +13,7 @@ void Arcane::Profiler::BeginSession(const std::string& name, const std::string& 
 	std::lock_guard lock(instance.m_Mutex);
 	if (instance.m_CurrentSession)
 	{
-		if (LoggerManager::HasCoreLogger()) // Edge case: BeginSession() might be before Log::Init()
+		if (LoggingManager::HasCoreLogger()) // Edge case: BeginSession() might be before Log::Init()
 		{
 			//ARC_CORE_ERROR("Profiler::BeginSession('{}') when session '{}' already open.", name, instance.m_CurrentSession->name);
 		}
@@ -26,7 +26,7 @@ void Arcane::Profiler::BeginSession(const std::string& name, const std::string& 
 		instance.m_CurrentSession = new InstrumentationSession({name});
 		instance.WriteHeader();
 	}
-	else if (LoggerManager::HasCoreLogger()) // Edge case: BeginSession() might be before Log::Init()
+	else if (LoggingManager::HasCoreLogger()) // Edge case: BeginSession() might be before Log::Init()
 	{
 		//ARC_CORE_ERROR("Profiler could not open results file '{}'.", filepath);
 	}
