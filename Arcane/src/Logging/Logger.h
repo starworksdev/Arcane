@@ -2,25 +2,21 @@
 
 #include <iostream>
 #include <mutex>
-#include <string>
 
 #include "Common.h"
 #include "Format.h"
-#include "ILogger.h"
+#include "LoggingService.h"
 
 namespace Arcane
 {
-   class Logger : public ILogger
+   class Logger : public LoggingService
    {
    public:
-      static constexpr const wchar_t* DEFAULT_FORMAT = L"[{timestamp %H:%M:%S}] [{level}] [{name}] {message}";
-
-      Logger(const std::wstring& name, const std::wstring& format = DEFAULT_FORMAT);
+      Logger(const std::wstring& name);
       virtual ~Logger() = default;
 
-      void Log(Level level, const std::wstring& message) override;
+      void Log(Level level, const std::wstring& message, const std::source_location& location = std::source_location::current()) override;
       void SetLevel(Level level) override { m_level = level; }
-      void SetFormat(const std::wstring& format);
 
    private:
       void OutputLog(const std::wstring& message) const;
@@ -28,6 +24,7 @@ namespace Arcane
       std::wstring m_name;
       Level m_level;
       Format m_format;
+      bool m_colorizeMessages;
       mutable std::mutex m_mutex;
    };
 }
