@@ -2,7 +2,7 @@
 
 #include "Logging/Logging.h"
 
-Arcane::Window::Window(HINSTANCE hInstance, int32_t nCmdShow, const wchar_t* windowTitle, int32_t width, int32_t height) :
+Arcane::Window::Window(HINSTANCE hInstance, int32_t nCmdShow, const std::wstring& windowTitle, int32_t width, int32_t height) :
    m_hInstance(hInstance),
    m_hWnd(nullptr),
    m_windowClassName(L"ArcaneWindow"),
@@ -63,7 +63,7 @@ void Arcane::Window::Cleanup()
       DestroyWindow(m_hWnd);
       m_hWnd = nullptr;
    }
-   UnregisterClass(m_windowClassName, m_hInstance);
+   UnregisterClass(m_windowClassName.c_str(), m_hInstance);
 }
 
 bool Arcane::Window::RegisterWindowClass()
@@ -75,7 +75,7 @@ bool Arcane::Window::RegisterWindowClass()
    wc.hInstance = m_hInstance;
    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-   wc.lpszClassName = m_windowClassName;
+   wc.lpszClassName = m_windowClassName.c_str();
 
    if (!RegisterClassEx(&wc))
    {
@@ -88,10 +88,11 @@ bool Arcane::Window::RegisterWindowClass()
 
 bool Arcane::Window::CreateAppWindow(int32_t nCmdShow)
 {
-   m_hWnd = CreateWindowEx(
+   m_hWnd = CreateWindowEx
+   (
       0,
-      m_windowClassName,
-      m_windowTitle,
+      m_windowClassName.c_str(),
+      m_windowTitle.c_str(),
       WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, CW_USEDEFAULT,
       m_width, m_height,
@@ -111,11 +112,11 @@ bool Arcane::Window::CreateAppWindow(int32_t nCmdShow)
    return true;
 }
 
-void Arcane::Window::SetTitle(const wchar_t* title)
+void Arcane::Window::SetTitle(const std::wstring& title)
 {
    m_windowTitle = title;
    if (m_hWnd)
-      SetWindowText(m_hWnd, title);
+      SetWindowText(m_hWnd, title.c_str());
 }
 
 void Arcane::Window::ToggleFullscreen()
@@ -175,12 +176,36 @@ LRESULT CALLBACK Arcane::Window::WindowProc(HWND hWnd, UINT message, WPARAM wPar
 
       case WM_LBUTTONDOWN:
       case WM_LBUTTONUP:
+      case WM_RBUTTONDOWN:
+      case WM_RBUTTONUP:
+      case WM_MBUTTONDOWN:
+      case WM_MBUTTONUP:
+      {
          if (window->m_mouseButtonCallback)
          {
-            bool isDown = (message == WM_LBUTTONDOWN);
-            window->m_mouseButtonCallback(isDown);
+            bool isDown = (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN || message == WM_MBUTTONDOWN);
+            int32_t button = 0;
+            switch (message)
+            {
+               case WM_LBUTTONDOWN:
+               case WM_LBUTTONUP:
+                  button = 0; // Left button
+                  break;
+               case WM_RBUTTONDOWN:
+               case WM_RBUTTONUP:
+                  button = 1; // Right button
+                  break;
+               case WM_MBUTTONDOWN:
+               case WM_MBUTTONUP:
+                  button = 2; // Middle button
+                  break;
+               default:
+                  break;
+            }
+            window->m_mouseButtonCallback(button, isDown);
          }
          break;
+      }
 
       case WM_CLOSE:
          if (window->m_closeCallback)
