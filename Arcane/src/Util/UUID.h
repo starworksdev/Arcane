@@ -12,6 +12,9 @@ namespace Arcane
 		UUID(const UUID&) = default;
 
 		operator uint64_t() const { return m_UUID; }
+
+		std::string ToString() const;
+
 	private:
 		uint64_t m_UUID;
 	};
