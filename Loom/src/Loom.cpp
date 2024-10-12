@@ -1,66 +1,96 @@
 #include "Loom.h"
-#include <iostream>
-#include <memory>
+
+#include "CommandLineParser.h"
+#include "Core/Console.h"
+#include "DLLInterface.h"
+#include "Exception.h"
 #include "Util/StringUtil.h"
+#include "Version.h"
 
-std::mutex Loom::dllMutex;
+static constexpr const wchar_t* ENTRY_POINT_FUNCTION_NAME = L"EntryPoint";
 
-HMODULE Loom::LoadDLL(const std::wstring& dllName, const std::wstring& funcName, EntryPointFunc& runGameFunc)
+std::unique_ptr<Loom> Loom::Create(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int32_t nCmdShow)
 {
-   std::lock_guard<std::mutex> lock(Loom::dllMutex);
-
-   HMODULE hModule = LoadLibrary(dllName.c_str());
-   if (!hModule)
+   auto loom = std::make_unique<Loom>(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+   if (!loom)
    {
-      DWORD error = GetLastError();
-      std::wcerr << L"Failed to load " << dllName << L", error code: " << error << L" (" << GetErrorMessage(error) << L")" << std::endl;
-      MessageBox(NULL, (L"Failed to load " + dllName + L": " + GetErrorMessage(error)).c_str(), L"Error", MB_OK);
-      return nullptr;
+#ifdef ARC_BUILD_DEBUG
+      ARC_DEBUGBREAK();
+#endif;
+      exit(EXIT_FAILURE);
    }
-
-   runGameFunc = (EntryPointFunc) GetProcAddress(hModule, Arcane::StringUtil::ToString(funcName).c_str());
-   if (!runGameFunc)
-   {
-      DWORD error = GetLastError();
-      std::wcerr << L"Failed to find " << funcName << L" function in " << dllName << L", error code: " << error << L" (" << GetErrorMessage(error) << L")" << std::endl;
-      MessageBox(NULL, (L"Failed to find " + funcName + L" function in " + dllName + L": " + GetErrorMessage(error)).c_str(), L"Error", MB_OK);
-      FreeLibrary(hModule);
-      return nullptr;
-   }
-
-   return hModule;
+   return loom;
 }
 
-void Loom::RunDLL(EntryPointFunc runGameFunc, HINSTANCE hInstance, int nCmdShow)
+Loom::Loom(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int32_t nCmdShow) : m_hModule(nullptr)
 {
-   runGameFunc(hInstance, nCmdShow);
+   Arcane::Console::Initialize();
 
-   MSG msg = { 0 };
-   while (GetMessage(&msg, NULL, 0, 0))
+   Arcane::LoggingManager::GetInstance().SetCoreLogger(new Arcane::Logger(Arcane::LoggingManager::DEFAULT_CORE_LOGGER_NAME));
+
+   ARC_CORE_INFO(L"Loom " + Arcane::StringUtil::ToWString(GetLoomVersionString()));
+
+   std::wstring dllName;
+   try
    {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
-
-      if (msg.message == WM_QUIT)
-         break;
+      ProcessCommandLineArgs(lpCmdLine, dllName);
+      ProcessDLL(hInstance, nCmdShow, dllName);
+   } 
+   catch (const Exception& e)
+   {
+      ARC_CORE_FATAL(Arcane::StringUtil::ToWString(e.what()));
    }
 }
 
-void Loom::UnloadDLL(HMODULE hModule)
+Loom::~Loom()
 {
-   std::lock_guard<std::mutex> lock(Loom::dllMutex);
+   ARC_CORE_INFO(L"Cleaning up Loom resources...");
+   if (m_hModule)
+      UnloadDLL(m_hModule);
+   Arcane::LoggingManager::Shutdown();
+}
 
-   if (hModule)
+void Loom::ProcessCommandLineArgs(LPWSTR lpCmdLine, std::wstring& dllName) const
+{
+   OptionHandlers handlers;
+   PositionalArguments positionalArgs;
+   std::wstring errorMsg;
+
+   ARC_CORE_INFO(L"Processing command line arguments...");
+   if (!ProcessCommandLine(lpCmdLine, handlers, positionalArgs, errorMsg))
    {
-      FreeLibrary(hModule);
+      ARC_CORE_ERROR(errorMsg);
+      throw CommandLineException(errorMsg);
+   }
+
+   ARC_CORE_INFO(L"Validating command line arguments...");
+   if (GetPositionalArgumentCount(positionalArgs) < 1)
+   {
+      errorMsg = L"Usage: Loom.exe <ClientDLLName>";
+      ARC_CORE_ERROR(errorMsg);
+      throw CommandLineException(errorMsg);
+   }
+
+   ARC_CORE_INFO(L"Acquiring client DLL...");
+   errorMsg = L"No valid DLL name provided.";
+   if (TryPopPositionalArgument(positionalArgs, dllName, errorMsg.c_str()) != 0)
+   {
+      ARC_CORE_ERROR(errorMsg);
+      throw CommandLineException(errorMsg);
    }
 }
 
-std::wstring Loom::GetErrorMessage(DWORD errorCode)
+void Loom::ProcessDLL(HINSTANCE hInstance, int32_t nCmdShow, const std::wstring& dllName) const
 {
-   LPWSTR messageBuffer = nullptr;
-   size_t size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&messageBuffer, 0, NULL);
-   std::wstring message(messageBuffer, size);
-   LocalFree(messageBuffer);
-   return message;
+   EntryPointFunc runGameFunc;
+   m_hModule = LoadDLL(dllName, ENTRY_POINT_FUNCTION_NAME, runGameFunc);
+   if (!m_hModule)
+   {
+      const std::wstring errorMsg = L"Error loading " + dllName;
+      ARC_CORE_ERROR(errorMsg);
+      throw DLLLoadException(errorMsg);
+   }
+
+   ARC_CORE_INFO(L"Successfully loaded '" + dllName + L"'.");
+   RunDLL(runGameFunc, hInstance, nCmdShow);
 }

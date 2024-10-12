@@ -1,15 +1,15 @@
 #include "CommandLineParser.h"
-#include <iostream>
-#include <memory>
 
-void Loom::AddOption(OptionHandlers& handlers, const std::wstring& option, OptionHandler handler)
+#include "Exception.h"
+
+void AddOption(OptionHandlers& handlers, const std::wstring& option, OptionHandler handler)
 {
    handlers[option] = handler;
 }
 
-void Loom::ParseCommandLine(int argc, LPWSTR* argv, const OptionHandlers& handlers, PositionalArguments& positionalArgs, std::wstring& errorMsg)
+void ParseCommandLine(int32_t argc, LPWSTR* argv, const OptionHandlers& handlers, PositionalArguments& positionalArgs, std::wstring& errorMsg)
 {
-   for (int i = 0; i < argc; ++i)
+   for (int32_t i = 0; i < argc; ++i)
    {
       std::wstring arg = argv[i];
       if (arg[0] == L'-')
@@ -36,6 +36,7 @@ void Loom::ParseCommandLine(int argc, LPWSTR* argv, const OptionHandlers& handle
       else
       {
          positionalArgs.push(arg);
+         ARC_CORE_INFO(L"Found positional argument '" + arg + L"'");
       }
    }
 
@@ -46,11 +47,13 @@ void Loom::ParseCommandLine(int argc, LPWSTR* argv, const OptionHandlers& handle
    }
 }
 
-const std::wstring Loom::PopPositionalArgument(PositionalArguments& args)
+const std::wstring PopPositionalArgument(PositionalArguments& args)
 {
    if (args.empty())
    {
-      throw std::out_of_range("No more positional arguments.");
+      const std::wstring errorMsg = L"No more positional arguments.";
+      ARC_CORE_ERROR(errorMsg);
+      throw CommandLineException(errorMsg);
    }
 
    std::wstring arg = args.top();
@@ -58,14 +61,14 @@ const std::wstring Loom::PopPositionalArgument(PositionalArguments& args)
    return arg;
 }
 
-size_t Loom::GetPositionalArgumentCount(const PositionalArguments& args)
+size_t GetPositionalArgumentCount(const PositionalArguments& args)
 {
    return args.size();
 }
 
-bool Loom::ProcessCommandLine(LPWSTR lpCmdLine, OptionHandlers& handlers, PositionalArguments& positionalArgs, std::wstring& errorMsg)
+bool ProcessCommandLine(LPWSTR lpCmdLine, OptionHandlers& handlers, PositionalArguments& positionalArgs, std::wstring& errorMsg)
 {
-   int argc;
+   int32_t argc;
    LPWSTR* argv = CommandLineToArgvW(lpCmdLine, &argc);
    if (!argv)
    {
@@ -78,16 +81,17 @@ bool Loom::ProcessCommandLine(LPWSTR lpCmdLine, OptionHandlers& handlers, Positi
    return errorMsg.empty();
 }
 
-int Loom::TryPopPositionalArgument(PositionalArguments& args, std::wstring& resultVar, const wchar_t* errorMsg)
+int32_t TryPopPositionalArgument(PositionalArguments& args, std::wstring& resultVar, const wchar_t* errorMsg)
 {
    try
    {
-      resultVar = Loom::PopPositionalArgument(args);
+      resultVar = PopPositionalArgument(args);
    }
    catch (const std::out_of_range&)
    {
-      MessageBox(NULL, errorMsg, L"Error", MB_OK);
+      ARC_CORE_ERROR(errorMsg);
       return 1;
    }
+   ARC_CORE_INFO(L"Found client DLL '" + resultVar + L"'");
    return 0;
 }

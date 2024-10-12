@@ -1,17 +1,21 @@
 #pragma once
 
-#include <Windows.h>
+#include <memory>
 #include <string>
-#include <mutex>
 
-namespace Loom
+#include "Common.h"
+
+class Loom
 {
-   typedef void (*EntryPointFunc)(HINSTANCE, int);
+public:
+   static std::unique_ptr<Loom> Create(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int32_t nCmdShow);
 
-   HMODULE LoadDLL(const std::wstring& dllName, const std::wstring& funcName, EntryPointFunc& runGameFunc);
-   void RunDLL(EntryPointFunc runGameFunc, HINSTANCE hInstance, int nCmdShow);
-   void UnloadDLL(HMODULE hModule);
-   std::wstring GetErrorMessage(DWORD errorCode);
+   Loom(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int32_t nCmdShow);
+   ~Loom();
 
-   extern std::mutex dllMutex;
-}
+private:
+   void ProcessCommandLineArgs(LPWSTR lpCmdLine, std::wstring& dllName) const;
+   void ProcessDLL(HINSTANCE hInstance, int32_t nCmdShow, const std::wstring& dllName) const;
+
+   mutable HMODULE m_hModule;
+};
