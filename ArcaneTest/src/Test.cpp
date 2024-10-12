@@ -14,12 +14,11 @@ void Render()
 
 ARC_API void EntryPoint(HINSTANCE hInstance, int nCmdShow)
 {
-   auto* app = new Arcane::Application(hInstance, nCmdShow);
+   auto app = Arcane::Application::Create(hInstance, nCmdShow);
 
-   app->SetUpdateCallback(Update);
-   app->SetFixedUpdateCallback(FixedUpdate);
-   app->SetRenderCallback(Render);
+   app->RegisterUpdateCallback(Update);
+   app->RegisterFixedUpdateCallback(FixedUpdate);
+   app->RegisterRenderCallback(Render);
 
    app->Run();
-   delete app;
 }
