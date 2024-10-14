@@ -17,7 +17,7 @@
 ### Installation
 1. **Clone the Repository**:
 ```
-git clone https://github.com/T3mps/Arcane.git
+git clone https://github.com/starworksdev/Arcane.git
 ```
 3. **Run Premake5**: The repository includes a premake5 file. To set up the project, simply run the premake5 script to configure and generate Visual Studio project files:
 ```
