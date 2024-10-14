@@ -19,7 +19,7 @@ jobs:
       # Step 2: Install Premake5
       - name: Install Premake5
         run: |
-          Invoke-WebRequest -Uri https://premake.github.io/download/latest/premake5/windows -OutFile premake5.zip
+          Invoke-WebRequest -Uri https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-windows.zip -OutFile premake5.zip
           Expand-Archive -Path premake5.zip -DestinationPath premake5
           Copy-Item premake5\premake5.exe -Destination $Env:ProgramFiles\premake5
 
